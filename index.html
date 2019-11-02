@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+  <title>Tree layout</title>
+</head>
+<style>
+  body {
+    padding: 50px 100px;
+  }
+
+  svg {
+    height: 2000px;
+    padding: 10px;
+    width: 1500px;
+  }
+
+  .link {
+    fill: none;
+    stroke-linecap: round;
+  }
+</style>
+<body>
+  <svg>
+    <g>
+      <g class="links"></g>
+      <g class="nodes"></g>
+    </g>
+  </svg>
+  <script src="https://d3js.org/d3.v5.min.js" charset="utf-8"></script>
+  <script type="module" src="chart.js"></script>
+</body>
+</html>
