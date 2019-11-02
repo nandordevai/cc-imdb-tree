@@ -1,6 +1,9 @@
+var maxRating = null;
+
 d3.json('./top-1000-extended-posters.json')
     .then(function (data) {
         const slice = data.filter(function (_) { return _.year >= 2017 && _.metascore !== ''; });
+        maxRating = d3.max(slice.map(function(_) { return _.metascore; }));
         const movies = d3.nest()
             .key(function (d) { return d.year; }).sortKeys(d3.descending)
             .key(function (d) { return d.genre.split(', ')[0]; }).sortKeys(d3.ascending)
@@ -26,6 +29,11 @@ d3.json('./top-1000-extended-posters.json')
         draw(root);
     });
 
+function nodeSize(d) {
+    const ratingScale = d3.scaleLinear([0, maxRating], [1, 25]);
+    return d.data.metascore ? ratingScale(d.data.metascore) : 10;
+}
+
 function draw(root) {
     // Nodes
     const movies = d3.select('svg g.nodes')
@@ -36,9 +44,11 @@ function draw(root) {
         );
 
     movies.append('circle')
+        .classed('node', true)
+        .classed('leaf', function (d) { return d.data.metascore; })
         .attr('cx', function (d) { return d.y; })
         .attr('cy', function (d) { return d.x; })
-        .attr('r', 10);
+        .attr('r', function (d) { return nodeSize(d); });
 
     movies.append('text')
         .text(function (d) { return d.data.title_eng || d.data.key; })
