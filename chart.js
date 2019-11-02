@@ -21,7 +21,7 @@ d3.json('./top-1000-extended-posters.json')
             .entries(slice);
         var root = d3.hierarchy(
             {
-                title_eng: 'IMDB Top',
+                key: 'IMDB Top',
                 values: movies,
             },
             function (d) { return d.values; });
