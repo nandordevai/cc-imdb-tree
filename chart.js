@@ -1,10 +1,12 @@
+var maxGrossUSD = null;
 var maxRating = null;
 
 d3.json('./top-1000-extended-posters.json')
     .then(function (data) {
-        const slice = data.filter(function (_) { return _.year >= 2017 && _.metascore !== ''; });
+        var slice = data.filter(function (_) { return _.year >= 2017 && _.metascore !== ''; });
+        maxGrossUSD = d3.max(slice.map(function(_) { return _.gross_usd; }));
         maxRating = d3.max(slice.map(function(_) { return _.metascore; }));
-        const movies = d3.nest()
+        var movies = d3.nest()
             .key(function (d) { return d.year; }).sortKeys(d3.descending)
             .key(function (d) { return d.genre.split(', ')[0]; }).sortKeys(d3.ascending)
             .sortValues((a, b) => {
@@ -17,26 +19,26 @@ d3.json('./top-1000-extended-posters.json')
                 }
             })
             .entries(slice);
-        const root = d3.hierarchy(
+        var root = d3.hierarchy(
             {
                 title_eng: 'IMDB Top',
                 values: movies,
             },
             function (d) { return d.values; });
-        const treeLayout = d3.tree();
+        var treeLayout = d3.tree();
         treeLayout.size([1500, 800]);
         treeLayout(root);
         draw(root);
     });
 
 function nodeSize(d) {
-    const ratingScale = d3.scaleLinear([0, maxRating], [1, 25]);
+    var ratingScale = d3.scaleLinear([0, maxRating], [1, 25]);
     return d.data.metascore ? ratingScale(d.data.metascore) : 10;
 }
 
 function draw(root) {
     // Nodes
-    const movies = d3.select('svg g.nodes')
+    var movies = d3.select('svg g.nodes')
         .selectAll('g')
         .data(root.descendants())
         .join(
@@ -57,9 +59,12 @@ function draw(root) {
         .classed('title', function (d) { return d.data.title_eng; })
 
     // Links
-    const link = d3.linkHorizontal()
+    var link = d3.linkHorizontal()
         .x(function (d) { return d.y; })
         .y(function (d) { return d.x; });
+
+    var grossScale = d3.scaleLinear([0, maxGrossUSD], [1, 30]);
+    var linkColors = d3.scaleOrdinal([], ['#ccc', '#aaa', '#888']);
 
     d3.select('svg g.links')
         .selectAll('path.link')
@@ -69,7 +74,11 @@ function draw(root) {
                 return enter.append('path')
                     .classed('link', true)
                     .attr('d', link)
-                    .attr('stroke', '#000');
-            }
+                    .attr('stroke', '#000')
+                    .attr('stroke-width', function (d) {
+                        return `${grossScale(d.target.data.gross_usd)}px`;
+                    })
+                    .attr('stroke', function (d, i) { return linkColors(i); });
+                }
         );
 }
